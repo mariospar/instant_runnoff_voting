@@ -63,9 +63,8 @@ class IRV:
             min_votes = self.find_min(stats)
             self.discard(min_votes)
             if not sum(i > 0 for i in stats.values()):
-                print("None problem was accepted")
+                print("No proposal was accepted")
                 break
-
 
     def passes(self, prominent_vote_count: int) -> bool:
         threshold = ceil(len(self.ballot_box.entries) * PASSING_PERCENTAGE)
@@ -73,7 +72,7 @@ class IRV:
 
     def find_min(self, stats: Dict[Text, int]) -> List[Text]:
         removed_zeros = stats
-        for k,v in stats.copy().items():
+        for k, v in stats.copy().items():
             if v == 0:
                 stats.pop(k)
 
@@ -102,36 +101,37 @@ class IRV:
                 if proposal in ballot.in_favour:
                     ballot.in_favour.remove(proposal)
 
+
 ballot_box = BallotBox()
 
-least_prominent = ("p1", "p2", "p3", "p4")
+proposals = ("p1", "p2", "p3", "p4")
 
 a = Votes(in_favour=["p4", "p1", "p3"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p2", "p1"], against=["p3, p4"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p1", "p4"], against=["p2"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p3", "p4", "p1"], against=["p2"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p4", "p3", "p2"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p2", "p4", "p3"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 a = Votes(in_favour=["p2", "p4"])
-b = Ballot(least_prominent, a)
+b = Ballot(proposals, a)
 ballot_box.addBallot(b)
 
 count = IRV(ballot_box)
