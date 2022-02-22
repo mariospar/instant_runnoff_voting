@@ -1,4 +1,4 @@
-from typing import Dict, Text, Tuple, List
+from typing import Dict, Text, Tuple, List, Optional
 from dataclasses import dataclass, field
 from math import ceil
 
@@ -15,19 +15,20 @@ class Votes(Dict):
 
 
 class Ballot:
+    
     def __init__(self, proposals: Tuple[Text], votes: Votes) -> None:
         self.proposals, self.votes = proposals, votes
 
     @property
-    def in_favour(self):
+    def in_favour(self) -> Optional[List[Text]]:
         return self.votes.in_favour or []
 
     @property
-    def against(self):
+    def against(self) -> Optional[List[Text]]:
         return self.votes.against or []
 
     @property
-    def blanks(self):
+    def blanks(self) -> Optional[List[Text]]:
         return (
             sorted(*self.votes.against, *self.votes.in_favour) == sorted(self.proposals)
             if len(self.votes.against) + len(self.votes.in_favour)
@@ -37,7 +38,8 @@ class Ballot:
 
 
 class BallotBox:
-    def __init__(self):
+    
+    def __init__(self) -> None:
         self.entries: List[Ballot] = []
 
     def addBallot(self, ballot: Ballot) -> None:
@@ -55,7 +57,8 @@ class BallotBox:
 
 
 class IRV:
-    def __init__(self, ballot_box: BallotBox):
+
+    def __init__(self, ballot_box: BallotBox) -> None:
         self.ballot_box = ballot_box
 
     def results(self):
