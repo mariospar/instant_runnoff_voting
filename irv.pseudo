@@ -1,0 +1,32 @@
+votes = [vote1, vote2, ...]
+
+function calculateStats() do
+    count the number of votes that
+    each proposal in the round
+end
+
+function discardProposal(least_prominent) do
+    removes the proposal with the least votes
+    after each round
+end
+
+function isPassing(proposal) do
+    calculates whether the votes surpass passing percentage in a round
+end
+
+function irv(votes) do
+    while True do
+        stats = calculateStats(votes)
+        if (isPassing(most_voted_proposal)) do
+            The proposal is accepted
+            break
+        end
+        discardProposal(least_voted_proposal)
+        if (no proposal is left) do
+            No proposal was accepted
+            break
+        end
+    end
+end
+
+irv(votes)
