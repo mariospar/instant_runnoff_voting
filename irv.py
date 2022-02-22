@@ -2,8 +2,9 @@ from typing import Dict, Text, Tuple, List
 from dataclasses import dataclass, field
 from math import ceil
 
-PASSING_PERCENTAGE = 2 / 3
-
+ELIGIBILITY_THRESHOLD = 2 / 3
+PARTICIPATION_THRESHOLD = 3 / 4
+ELIGIBLE_VOTERS = 10
 
 @dataclass
 class Votes(Dict):
@@ -47,6 +48,10 @@ class BallotBox:
             exit(f"{ballot.__str__} cannot be added to Ballot Box")
 
         self.entries.append(ballot)
+    
+    def validate(self) -> None:
+        if self.entries < ceil(ELIGIBLE_VOTERS * PARTICIPATION_THRESHOLD):
+            exit("This vote has not enough ballots to be considered valid")
 
 
 class IRV:
@@ -54,6 +59,7 @@ class IRV:
         self.ballot_box = ballot_box
 
     def results(self):
+        self.ballot_box.validate()
         while True:
             stats = self.round_stats()
             prominent_proposal = max(stats.items(), key=lambda x: x[1])
@@ -67,7 +73,7 @@ class IRV:
                 break
 
     def passes(self, prominent_vote_count: int) -> bool:
-        threshold = ceil(len(self.ballot_box.entries) * PASSING_PERCENTAGE)
+        threshold = ceil(len(self.ballot_box.entries) * ELIGIBILITY_THRESHOLD)
         return prominent_vote_count >= threshold
 
     def find_min(self, stats: Dict[Text, int]) -> List[Text]:
