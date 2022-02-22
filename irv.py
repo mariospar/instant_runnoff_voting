@@ -4,7 +4,8 @@ from math import ceil
 
 ELIGIBILITY_THRESHOLD = 2 / 3
 PARTICIPATION_THRESHOLD = 3 / 4
-ELIGIBLE_VOTERS = 10
+ELIGIBLE_VOTERS = 5
+proposals = ("p1", "p2", "p3")
 
 @dataclass
 class Votes(Dict):
@@ -18,6 +19,8 @@ class Ballot:
     
     def __init__(self, proposals: Tuple[Text], votes: Votes) -> None:
         self.proposals, self.votes = proposals, votes
+        self.all_votes = [*self.against, *self.in_favour]
+        self.validate()
 
     @property
     def in_favour(self) -> Optional[List[Text]]:
@@ -26,16 +29,14 @@ class Ballot:
     @property
     def against(self) -> Optional[List[Text]]:
         return self.votes.against or []
-
-    @property
-    def blanks(self) -> Optional[List[Text]]:
-        return (
-            sorted(*self.votes.against, *self.votes.in_favour) == sorted(self.proposals)
-            if len(self.votes.against) + len(self.votes.in_favour)
-            == len(self.proposals)
-            else []
-        )
-
+    
+    def validate(self) -> None:
+        if sorted(self.all_votes) != sorted(set(self.all_votes)):
+            exit("You cannot vote the same proposal twice")
+        
+        for voted_proposal in self.all_votes:
+            if voted_proposal not in self.proposals:
+                exit(f"{voted_proposal} doesn't exist as a choice")
 
 class BallotBox:
     
@@ -50,9 +51,9 @@ class BallotBox:
             exit(f"{ballot.__str__} cannot be added to Ballot Box")
 
         self.entries.append(ballot)
-    
-    def validate(self) -> None:
-        if self.entries < ceil(ELIGIBLE_VOTERS * PARTICIPATION_THRESHOLD):
+
+    def validate_participation(self) -> None:
+        if len(self.entries) < ceil(ELIGIBLE_VOTERS * PARTICIPATION_THRESHOLD):
             exit("This vote has not enough ballots to be considered valid")
 
 
@@ -60,26 +61,38 @@ class IRV:
 
     def __init__(self, ballot_box: BallotBox) -> None:
         self.ballot_box = ballot_box
+        self.results()
 
     def results(self):
-        self.ballot_box.validate()
+        self.ballot_box.validate_participation()
+
         while True:
             stats = self.round_stats()
-            prominent_proposal = max(stats.items(), key=lambda x: x[1])
+            prominent_proposal = self.find_most_prominent(stats)
+
             if self.passes(prominent_proposal[1]):
                 print(f"{prominent_proposal[0]} is accepted")
                 break
-            min_votes = self.find_min(stats)
+
+            min_votes = self.find_least_prominent(stats)
             self.discard(min_votes)
+
             if not sum(i > 0 for i in stats.values()):
                 print("No proposal was accepted")
                 break
 
     def passes(self, prominent_vote_count: int) -> bool:
-        threshold = ceil(len(self.ballot_box.entries) * ELIGIBILITY_THRESHOLD)
-        return prominent_vote_count >= threshold
 
-    def find_min(self, stats: Dict[Text, int]) -> List[Text]:
+        return prominent_vote_count >= ceil(len(self.ballot_box.entries) * ELIGIBILITY_THRESHOLD)
+
+
+    def find_most_prominent(self, stats: Dict[Text, int]) -> List[Text]:
+
+        return max(stats.items(), key=lambda x: x[1])
+
+
+    def find_least_prominent(self, stats: Dict[Text, int]) -> List[Text]:
+
         removed_zeros = stats
         for k, v in stats.copy().items():
             if v == 0:
@@ -111,38 +124,16 @@ class IRV:
                     ballot.in_favour.remove(proposal)
 
 
-ballot_box = BallotBox()
+def get_votes() -> List[Votes]:
+    return [
+        Votes(in_favour=["p1", "p3", "p2"]), Votes(in_favour=["p1", "p2"], against=["p3"]),
+        Votes(in_favour=["p2"], against=["p1", "p3"]), Votes(in_favour=["p2"], against=["p3"])
+    ]
 
-proposals = ("p1", "p2", "p3", "p4")
-
-a = Votes(in_favour=["p4", "p1", "p3"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p2", "p1"], against=["p3, p4"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p1", "p4"], against=["p2"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p3", "p4", "p1"], against=["p2"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p4", "p3", "p2"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p2", "p4", "p3"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-a = Votes(in_favour=["p2", "p4"])
-b = Ballot(proposals, a)
-ballot_box.addBallot(b)
-
-count = IRV(ballot_box)
-
-count.results()
+if __name__ == "__main__":
+    ballot_box = BallotBox()
+    votes = get_votes()
+    for vote in votes:
+        ballot_box.addBallot(Ballot(proposals, vote))
+    
+    IRV(ballot_box)
