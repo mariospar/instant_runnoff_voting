@@ -28,7 +28,7 @@ __license__ = "MIT"
 __status__ = "production"
 
 # Global Constants
-ELIGIBILITY_THRESHOLD = 2 / 3
+ELIGIBILITY_THRESHOLD = 1 / 3
 PARTICIPATION_THRESHOLD = 3 / 4
 ELIGIBLE_VOTERS = 5
 proposals = ("p1", "p2", "p3")
@@ -244,6 +244,8 @@ def get_votes() -> List[Votes]:
         Votes(in_favour=["p1", "p2"], against=["p3"]),
         Votes(in_favour=["p2"], against=["p1", "p3"]),
         Votes(in_favour=["p2"], against=["p3"]),
+        Votes(in_favour=["p3", "p2", "p1"]),
+        Votes(in_favour=["p1"], against=["p2"])
     ]
 
 
